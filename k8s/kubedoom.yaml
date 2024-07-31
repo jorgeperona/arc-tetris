@@ -1,0 +1,67 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: kubedoom
+  name: kubedoom
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: kubedoom
+  template:
+    metadata:
+      labels:
+        app: kubedoom
+    spec:
+      hostNetwork: true
+      serviceAccountName: kubedoom
+      containers:
+        - image: ghcr.io/storax/kubedoom:latest
+          env:
+            - name: NAMESPACE
+              value: kubedoom
+          name: kubedoom
+          ports:
+            - containerPort: 5900
+              name: vnc
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: kubedoom
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: kubedoom
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: cluster-admin
+subjects:
+  - kind: ServiceAccount
+    name: kubedoom
+    namespace: kubedoom
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: kubedoom
+  name: kubedoom
+spec:
+  internalTrafficPolicy: Cluster
+  ipFamilies:
+  - IPv4
+  ipFamilyPolicy: SingleStack
+  ports:
+  - port: 5900
+    protocol: TCP
+    targetPort: 5900
+  selector:
+    app: kubedoom
+  sessionAffinity: None
+  type: ClusterIP
+status:
+  loadBalancer: {}

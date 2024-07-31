@@ -1,0 +1,170 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: nginx
+  name: nginx
+spec:
+  progressDeadlineSeconds: 600
+  replicas: 1
+  revisionHistoryLimit: 10
+  selector:
+    matchLabels:
+      app: nginx
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: nginx
+    spec:
+      containers:
+      - image: nginx:latest
+        imagePullPolicy: IfNotPresent
+        name: nginx
+        ports:
+        - containerPort: 80
+          protocol: TCP
+--- 
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx
+spec:
+  ports:
+  - port: 5000
+    protocol: TCP
+    targetPort: 80
+  selector:
+    app: nginx
+  type: ClusterIP
+status:
+  loadBalancer: {}
+--- 
+# default deny all
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny-all
+spec:
+  podSelector: {}
+  policyTypes:
+  - Ingress
+--- 
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: test-network-policy
+spec:
+  podSelector:
+    matchLabels:
+      app: tetris
+  policyTypes:
+  - Ingress
+  ingress: 
+  - {}
+--- 
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-namespace-x
+spec:
+  podSelector:
+    matchLabels:
+      app: tetris
+  policyTypes:
+  - Ingress
+  ingress: 
+  - from:
+    - namespaceSelector:
+      matchLabels:
+        kubernetes.io/metadata.name: ines
+    - podSelector:
+        matchLabels:
+          aapp: nginx
+    ports:
+    - protocol: TCP
+      port: 3000
+
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: nginx
+  name: nginx
+spec:
+  progressDeadlineSeconds: 600
+  replicas: 1
+  revisionHistoryLimit: 10
+  selector:
+    matchLabels:
+      app: nginx
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: nginx
+    spec:
+      containers:
+      - image: nginx:latest
+        imagePullPolicy: IfNotPresent
+        name: nginx
+        ports:
+        - containerPort: 80
+          protocol: TCP
+--- 
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx
+spec:
+  ports:
+  - port: 5000
+    protocol: TCP
+    targetPort: 80
+  selector:
+    app: nginx
+  type: ClusterIP
+status:
+  loadBalancer: {}
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny-ingress
+spec:
+  podSelector: {}
+  policyTypes:
+  - Ingress
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-namespace-ines
+spec:
+  podSelector:
+    matchLabels:
+      app: tetris
+  policyTypes:
+  - Ingress
+  ingress: 
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: ines
+    - podSelector:
+        matchLabels:
+          app: nginx
+    ports:
+    - protocol: TCP
+      port: 3000

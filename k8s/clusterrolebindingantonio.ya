@@ -1,0 +1,18 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  annotations:
+    kubectl.kubernetes.io/last-applied-configuration: |
+      {"apiVersion":"rbac.authorization.k8s.io/v1","kind":"ClusterRoleBinding","metadata":{"annotations":{},"name":"lab-chaos"},"roleRef":{"apiGroup":"rbac.authorization.k8s.io","kind":"ClusterRole","name":"lab-chaos"},"subjects":[{"kind":"ServiceAccount","name":"lab-chaos","namespace":"danichacon"}]}
+  creationTimestamp: "2024-05-15T18:12:12Z"
+  name: lab-chaos
+  resourceVersion: "1400923"
+  uid: 6c608121-fad0-404b-bbec-e8892492e95c
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: lab-chaos
+subjects:
+- kind: ServiceAccount
+  name: lab-chaos
+  namespace: danichacon

@@ -1,0 +1,71 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: wildwest
+spec:
+  replicas: 5
+  selector:
+    matchLabels:
+      app: wildwest
+  template:
+    metadata:
+      labels:
+        app: wildwest
+    spec:
+      terminationGracePeriodSeconds: 0
+      containers:
+      - name: wildwest
+        image: gshipley/wildwest:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8080
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: wildwest
+  labels:
+    app: wildwest
+spec:
+  type: ClusterIP
+  ports:
+    - name: wildwest
+      port: 8080
+  selector:
+    app: wildwest
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  creationTimestamp: null
+  name: view
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: edit
+subjects:
+  - kind: ServiceAccount
+    name: default
+    namespace: ines
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: wildwest
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+spec:
+  ingressClassName: nginx
+  rules:
+  - http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: wildwest
+            port:
+              number: 8080

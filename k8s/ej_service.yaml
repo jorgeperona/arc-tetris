@@ -1,0 +1,67 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: tetris
+  name: tetris
+spec:
+  progressDeadlineSeconds: 600
+  replicas: 1
+  revisionHistoryLimit: 10
+  selector:
+    matchLabels:
+      app: tetris
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: tetris
+    spec:
+      containers:
+      - image: acrnelabk8slab01.azurecr.io/tetris:1.0.0
+        imagePullPolicy: IfNotPresent
+        name: tetris
+        ports:
+        - containerPort: 3000
+          protocol: TCP
+--- 
+apiVersion: v1
+kind: Service
+metadata:
+  creationTimestamp: null
+  labels:
+    app: tetris
+  name: tetris
+spec:
+  ports:
+  - port: 3000
+    protocol: TCP
+    targetPort: 3000
+  selector:
+    app: tetris
+  type: ClusterIP
+status:
+  loadBalancer: {}
+--- 
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: tetris
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+spec:
+  ingressClassName: nginx
+  rules:
+  - http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: tetris
+            port:
+              number: 3000

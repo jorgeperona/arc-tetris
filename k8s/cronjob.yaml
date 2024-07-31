@@ -1,0 +1,28 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  labels:
+    app: tetris
+  name: tetris
+  namespace: ines
+spec:
+  schedule: "* * * * *"
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+          - image: acrnelabk8slab01.azurecr.io/tetris:1.0.0
+            command: 
+            - sh
+            - -c 
+            - echo "Hello world"
+            imagePullPolicy: IfNotPresent
+            name: tetris
+            ports:
+            - containerPort: 3000
+              protocol: TCP
+            resources: {}
+            terminationMessagePath: /dev/termination-log
+            terminationMessagePolicy: File
+          restartPolicy: Never
